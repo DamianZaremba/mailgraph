@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# $Id: mailgraph-init 19 2005-06-13 11:23:22Z dws $
+# example init script for mailgraph
+#
+# chkconfig: 2345 82 28
+# description: mailgraph postfix log grapher.
+#
+# processname: mailgraph.pl
+# pidfile: /var/run/mailgraph.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+MAILGRAPH_PL="/usr/local/bin/mailgraph.pl"
+MAIL_LOG="/var/log/maillog"
+PID_FILE="/var/run/mailgraph.pid"
+RRD_DIR="/var/lib"
+prog=$(basename $MAILGRAPH_PL)
+
+case "$1" in
+'start')
+	echo "Starting mail statistics grapher: mailgraph";
+	nice -19 $MAILGRAPH_PL -l $MAIL_LOG -d \
+		--daemon-pid=$PID_FILE --daemon-rrd=$RRD_DIR
+	;;
+
+'stop')
+	echo "Stopping mail statistics grapher: mailgraph";
+	if [ -f $PID_FILE ]; then
+		kill `cat $PID_FILE`
+		rm $PID_FILE
+	else
+		echo "mailgraph not running";
+	fi
+	;;
+
+'status')
+	status $prog
+	;;
+
+*)
+	echo "Usage: $0 { start | stop | status }"
+	exit 1
+	;;
+
+esac
+exit 0
